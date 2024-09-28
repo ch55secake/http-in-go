@@ -20,7 +20,7 @@ func getBase(w http.ResponseWriter, r *http.Request) {
 	body := readRequestBody(r)
 
 	fmt.Printf("%s: got / request! first(%t)=%s, body: %s\n", ctx.Value(keyServerAddr), isFirst, first, body)
-	_, err := io.WriteString(w, "Base banana!\n")
+	_, err := io.WriteString(w, fmt.Sprintf("Base banana!\n"))
 	if err != nil {
 		return
 	}
@@ -36,11 +36,18 @@ func readRequestBody(r *http.Request) []byte {
 	return body
 }
 
-func getWelcomeMessage(w http.ResponseWriter, r *http.Request) {
+func getBananaFlavour(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	fmt.Printf("%s: got /hello request\n", ctx.Value(keyServerAddr))
-	_, err := io.WriteString(w, "Hello from multiple servers!\n")
+	formValue := r.FormValue("flavour")
+	if formValue == "" {
+		w.Header().Set("x-missing-field", formValue)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	fmt.Printf("%s: got /fruit request\n", ctx.Value(keyServerAddr))
+	_, err := io.WriteString(w, fmt.Sprintf("%s banana!\n", formValue))
 	if err != nil {
 		return
 	}
@@ -49,7 +56,7 @@ func getWelcomeMessage(w http.ResponseWriter, r *http.Request) {
 func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", getBase)
-	mux.HandleFunc("/hello", getWelcomeMessage)
+	mux.HandleFunc("/fruit", getBananaFlavour)
 
 	ctx, cancelCtx := context.WithCancel(context.Background())
 	serverOne := &http.Server{
