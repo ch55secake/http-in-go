@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -79,7 +80,7 @@ func main() {
 
 	go func() {
 		err := serverOne.ListenAndServe()
-		if err != http.ErrServerClosed {
+		if !errors.Is(err, http.ErrServerClosed) {
 			fmt.Printf("serverOne closed\n")
 		} else if err != nil {
 			fmt.Printf("error listening for server one: %s\n ", err)
@@ -90,7 +91,7 @@ func main() {
 
 	go func() {
 		err := serverTwo.ListenAndServe()
-		if err != http.ErrServerClosed {
+		if !errors.Is(err, http.ErrServerClosed) {
 			fmt.Printf("serverTwo closed\n")
 		} else if err != nil {
 			fmt.Printf("error listening for server two: %s\n ", err)
