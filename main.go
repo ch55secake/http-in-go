@@ -1,6 +1,8 @@
 package main
 
-import "http-in-go/httpserver"
+import (
+	"http-in-go/httpserver"
+)
 
 func main() {
 	err := httpserver.CreateHTTPServer("8080")
