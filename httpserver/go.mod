@@ -1,4 +1,4 @@
-module github.com/ch55secake/http-in-go/httpserver
+module http-in-go/httpserver
 
 go 1.23.0
 
