@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net"
 	"net/http"
 )
@@ -16,11 +17,23 @@ func getBase(w http.ResponseWriter, r *http.Request) {
 	isFirst := r.URL.Query().Has("first")
 	first := r.URL.Query().Get("first")
 
-	fmt.Printf("%s: got / request! first(%t)=%s\n", ctx.Value(keyServerAddr), isFirst, first)
+	body := readRequestBody(r)
+
+	fmt.Printf("%s: got / request! first(%t)=%s, body: %s\n", ctx.Value(keyServerAddr), isFirst, first, body)
 	_, err := io.WriteString(w, "Base banana!\n")
 	if err != nil {
 		return
 	}
+}
+
+// Read in request and return the response as an array of bytes
+func readRequestBody(r *http.Request) []byte {
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		fmt.Printf("Error reading body: %v\n", err)
+	}
+
+	return body
 }
 
 func getWelcomeMessage(w http.ResponseWriter, r *http.Request) {
