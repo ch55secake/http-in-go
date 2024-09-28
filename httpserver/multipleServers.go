@@ -13,7 +13,10 @@ const keyServerAddr = "serverAddr"
 func getBase(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	fmt.Printf("%s: got / request\n", ctx.Value(keyServerAddr))
+	isFirst := r.URL.Query().Has("first")
+	first := r.URL.Query().Get("first")
+
+	fmt.Printf("%s: got / request! first(%t)=%s\n", ctx.Value(keyServerAddr), isFirst, first)
 	_, err := io.WriteString(w, "Base banana!\n")
 	if err != nil {
 		return
