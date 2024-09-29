@@ -5,8 +5,5 @@ import (
 )
 
 func main() {
-	err := httpserver.CreateHTTPServer("8080")
-	if err != nil {
-		return
-	}
+	httpserver.CreateHTTPServer("8080")
 }
