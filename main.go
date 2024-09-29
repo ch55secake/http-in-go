@@ -7,12 +7,24 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"sync"
 	"time"
 )
 
 func main() {
-	httpserver.CreateHTTPServer("8080")
+	wg := &sync.WaitGroup{}
+	wg.Add(1)
 
+	httpserver.CreateHTTPServer("8080", wg)
+
+	select {
+	case <-time.After(time.Second * 10):
+	}
+
+	ping()
+}
+
+func ping() {
 	c := http.Client{Timeout: time.Duration(1) * time.Second}
 	resp, err := c.Get("http://localhost:8080")
 	if err != nil {
@@ -29,5 +41,4 @@ func main() {
 
 	logrus.Info("Client: got response!\n")
 	logrus.Infof("Client: response status code: %v\n", resp.StatusCode)
-
 }

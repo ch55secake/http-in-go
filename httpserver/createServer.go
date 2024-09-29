@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 	"time"
 )
@@ -30,28 +31,30 @@ func logDefaultMessage() {
 // CreateHTTPServer /**
 // Creates a default httpServer with its own http.ServeMux, will only server one / endpoint as part of this
 // Port can be provided as wanted by the user of this method
-func CreateHTTPServer(p string) {
+func CreateHTTPServer(p string, wg *sync.WaitGroup) {
 	logrus.SetFormatter(&logrus.TextFormatter{ForceColors: true, TimestampFormat: "15:04:05", FullTimestamp: true})
 	logrus.SetOutput(colorable.NewColorableStdout())
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		logrus.Infof("Server handling %v request at /", r.Method)
 	})
-	server := http.Server{
+	s := http.Server{
 		Addr:    fmt.Sprintf(":%v", p),
 		Handler: mux,
 	}
 
 	go func() {
+		defer wg.Done()
+
 		logDefaultMessage()
-		logrus.Infof("Server has started running at http://localhost%v", server.Addr)
-		if err := server.ListenAndServe(); err != nil {
+		logrus.Infof("Server has started running at http://localhost%v", s.Addr)
+		if err := s.ListenAndServe(); err != nil {
 			if !errors.Is(err, http.ErrServerClosed) {
 				logrus.Errorf("Error running http server: %s\n", err)
 			}
 		}
 	}()
-	gracefulShutdown(server)
+	gracefulShutdown(&s)
 }
 
 // CreateHTTPServerWithMux /**
@@ -101,13 +104,11 @@ func CreateHttpServerWithMuxAndContext(p string, mux *http.ServeMux, ctx context
 		logrus.Info("Stopped serving new connections.")
 	}()
 
-	gracefulShutdown(server)
-
 	cancelCtx()
 	return nil
 }
 
-func gracefulShutdown(server http.Server) {
+func gracefulShutdown(s *http.Server) {
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
 	<-signalChan
@@ -115,7 +116,7 @@ func gracefulShutdown(server http.Server) {
 	shutDownCtx, shutdownRelease := context.WithTimeout(context.Background(), 10*time.Second)
 	defer shutdownRelease()
 
-	if err := server.Shutdown(shutDownCtx); err != nil {
+	if err := s.Shutdown(shutDownCtx); err != nil {
 		logrus.Errorf("Error shutting down server: %v", err)
 	}
 	logrus.Infof("Server has stopped serving new connections.")
