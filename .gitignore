@@ -20,9 +20,6 @@
 # Go workspace file
 go.work
 go.work.sum
-go.sum
-httpserver/go.sum
-httpclient/go.sum
 
 # env file
 .env
