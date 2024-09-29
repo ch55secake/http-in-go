@@ -1,6 +1,6 @@
 module http-in-go
 
-go 1.23.0
+go 1.23
 
 require (
 	github.com/mattn/go-colorable v0.1.13
